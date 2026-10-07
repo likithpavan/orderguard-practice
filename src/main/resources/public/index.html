@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>OrderGuard · Order desk</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="OrderGuard home"><span class="brand-icon">OG</span><span>OrderGuard<span class="brand-caption">ENGINEERING PRACTICE</span></span></a>
+      <span class="pill" id="environment">Connecting…</span>
+    </header>
+    <main>
+      <div class="heading"><p class="eyebrow">THE ORDER DESK</p><h1>A small order.<br>A complete delivery.</h1><p class="intro">Enter a simulated order and follow its journey through validation and storage. Every accepted order appears in the ledger.</p></div>
+      <div class="notice" id="starter-notice" hidden><strong>OG-101 starter:</strong> this version contains the quantity-limit bug. Reproduce it here, then fix the backend validator.</div>
+      <div class="desk-grid">
+        <section class="card entry-card" aria-labelledby="entry-title">
+          <div class="card-heading"><span class="step-label">01 / SUBMIT</span><span class="small-badge">Practice only</span></div>
+          <h2 id="entry-title">New order</h2>
+          <p class="subtext">Requirement: whole quantities from 1 to 1,000, for both BUY and SELL.</p>
+          <form id="order-form" novalidate>
+            <label for="symbol">Stock symbol</label>
+            <select name="symbol" id="symbol"><option value="AAPL">AAPL · Apple</option><option value="MSFT">MSFT · Microsoft</option><option value="NVDA">NVDA · NVIDIA</option></select>
+            <label for="side">Order action</label>
+            <select name="side" id="side"><option value="BUY">BUY</option><option value="SELL">SELL</option></select>
+            <label for="quantity">Quantity <span>shares</span></label>
+            <input id="quantity" name="quantity" type="text" inputmode="numeric" value="1000" autocomplete="off" aria-describedby="quantity-help">
+            <p class="field-help" id="quantity-help">Try 1, 1,000 and 1,001. The server makes the final decision.</p>
+            <button class="primary" type="submit" id="submit-order">Submit practice order <span aria-hidden="true">→</span></button>
+          </form>
+          <div class="decision neutral" id="decision" role="status" aria-live="polite"><strong id="decision-title">Ready to validate</strong><p id="decision-message">Submit an order to see the server response.</p><code id="request-id" hidden></code></div>
+        </section>
+        <section class="card ledger-card" aria-labelledby="ledger-title">
+          <div class="card-heading"><span class="step-label">02 / VERIFY</span><button type="button" class="text-button" id="refresh-orders">Refresh</button></div>
+          <div class="ledger-heading"><h2 id="ledger-title">Accepted orders</h2><span class="count" id="order-count">0</span></div>
+          <p class="subtext">A rejected request must add zero orders. If the ledger already has orders, its count stays the same.</p>
+          <div class="table-wrap"><table><thead><tr><th>Stock</th><th>Action</th><th>Quantity</th><th>Time</th></tr></thead><tbody id="orders-body"></tbody></table></div>
+          <div class="empty-state" id="empty-state"><span class="empty-icon" aria-hidden="true">◇</span><strong>Your ledger is empty</strong><p>An accepted practice order will appear here.</p></div>
+          <p class="ledger-error" id="ledger-error" role="alert" hidden></p>
+          <div class="ledger-footer"><span>Stored locally · simulated orders</span><button type="button" class="text-button" id="clear-orders">Clear practice orders</button></div>
+        </section>
+      </div>
+      <section class="learning-strip"><div><p class="eyebrow">YOUR FIRST TICKET</p><h3>OG-101 · Enforce the 1,000-share limit</h3></div><p>Run the starter → reproduce 1,001 → fix validation → run tests → review → release.<br>Open <strong>START_HERE.md</strong> in the project folder for the hands-on steps.</p></section>
+    </main>
+    <footer><span>No market connection. No money movement.</span><span id="build-info">Loading build information…</span></footer>
+  </div>
+</body>
+</html>

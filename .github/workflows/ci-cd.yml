@@ -1,0 +1,122 @@
+name: OrderGuard CI and release practice
+
+on:
+  push:
+    branches: [main, reference-solution, 'feature/**']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      promote_training_production:
+        description: 'Run the temporary training-production rehearsal after staging'
+        type: boolean
+        required: true
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: orderguard-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-test:
+    name: Build and test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Run complete checks
+        run: bash scripts/test.sh
+      - name: Package the tested source
+        run: bash scripts/package.sh
+      - name: Save release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: orderguard-release
+          path: dist/
+          if-no-files-found: error
+          retention-days: 14
+      - name: Save test evidence even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: orderguard-test-report
+          path: build/reports/
+          if-no-files-found: warn
+          retention-days: 14
+
+  staging:
+    name: Staging rehearsal
+    needs: build-test
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: practice-staging
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/download-artifact@v5
+        with:
+          name: orderguard-release
+          path: dist
+      - name: Check artifact identity
+        run: |
+          mkdir -p build
+          java tools/ArtifactInfo.java dist/orderguard.jar > build/downloaded-release.properties
+          cmp dist/release.properties build/downloaded-release.properties
+      - name: Check the actual JAR with disposable staging data
+        run: bash scripts/release-check.sh dist/orderguard.jar staging
+      - name: Save staging evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: orderguard-staging-report
+          path: build/reports/
+          if-no-files-found: warn
+
+  training-production:
+    name: Training production rehearsal
+    needs: [build-test, staging]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' && inputs.promote_training_production
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: practice-production
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/download-artifact@v5
+        with:
+          name: orderguard-release
+          path: dist
+      - name: Check artifact identity
+        run: |
+          mkdir -p build
+          java tools/ArtifactInfo.java dist/orderguard.jar > build/downloaded-release.properties
+          cmp dist/release.properties build/downloaded-release.properties
+      - name: Check the same JAR with disposable production data
+        run: bash scripts/release-check.sh dist/orderguard.jar production
+      - name: Save training-production evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: orderguard-production-report
+          path: build/reports/
+          if-no-files-found: warn

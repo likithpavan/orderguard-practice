@@ -1,0 +1,22 @@
+name: OrderGuard behaviour ticket
+description: Describe a reproducible order-entry defect
+title: "OG-101: Reject order quantities above 1000"
+body:
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduce the problem
+      value: "On the starter version, submit AAPL BUY quantity 1001. It is accepted and stored. Repeat for SELL."
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      value: |
+        Accept whole quantities 1 through 1000 inclusive for BUY and SELL.
+        Reject 1001 and greater, zero, negatives, fractions, and missing quantities.
+        Return an error and add zero accepted records on rejection.
+        Preserve existing orders. Enforce in the backend before persistence.
+    validations:
+      required: true
