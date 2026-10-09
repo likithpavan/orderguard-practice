@@ -25,6 +25,10 @@ public final class OrderValidator {
         catch (NumberFormatException exception) { throw invalidQuantity(); }
         if (quantity < 1) throw invalidQuantity();
 
+        if (quantity > MAX_QUANTITY){
+            throw invalidQuantity();
+        }
+
         // OG-101 starter: the upper-limit check is missing here.
 
         return new ValidatedOrder(symbol, side, quantity);
