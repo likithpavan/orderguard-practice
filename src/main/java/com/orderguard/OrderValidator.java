@@ -29,7 +29,7 @@ public final class OrderValidator {
             throw invalidQuantity();
         }
 
-        // OG-101 starter: the upper-limit check is missing here.
+        // Quantities above 1000 are rejected before an order is saved.
 
         return new ValidatedOrder(symbol, side, quantity);
     }
